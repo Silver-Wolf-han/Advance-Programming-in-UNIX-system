@@ -2,8 +2,6 @@ UP25 Lab04
 ==========
 Date: 2025-04-21
 
-[TOC]
-
 # Assembly Language Practice
 
 This lab aims to practice assembly programming. Please extend our `libmini` library introduced in the class to support additional features. The required features are summarized in the [Feature List](#Feature-List) section. All the features must be implemented in x86-64 assembly in yasm syntax.

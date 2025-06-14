@@ -2,181 +2,176 @@
 
 ## 目標
 
-和lab5很像 都是要想辦法撈到server上正常情況下撈不到的東西 只是lab5是用race condition 這裡是用buffer overflow
+Very similar to lab5 — the goal is still to extract data from the server that’s not accessible under normal circumstances. But while lab5 uses a **race condition**, this one uses **buffer overflow**.
 
-每一題要做的事情都是
-1. 打開`/FLAG`
+Each task basically requires:
+1. Open `/FLAG`
     `fd = open("/FLAG")`
-2. 把`/FLAG`的內容讀出來
+2. Read the content of `/FLAG`
     `read(fd, buf, buf_size)`
-3. 把讀到的內容輸出到`stdout`
+3. Output the read content to `stdout`
     `write(1, buf, buf_size)`
-4. 結束程式
+4. Exit the program
     `exit(0)`
 
-另外 這裡的fd一定是3 (from discord) 因為是第一個打開的檔案
+Also, the file descriptor (fd) will always be 3 (from Discord), since it’s the first file opened.
 
 ## todo
 
-這次作業推薦用pwndbg看stack比較方便 
-另外怎麼debug?
-執行腳本時給個參數`local` 之後印出pid 然後用attach pid的方式來debug
-
+This time, it’s recommended to use pwndbg to examine the stack — it’s more convenient.
+So how to debug?
+When running the script, pass in the argument `local` — this will print out the PID, and then you can attach to the PID for debugging.
+s
 ### 1
-看server code很單純，把寫的組合語言送出去就好，會直接執行
+Looking at the server code, it’s simple — just send your assembly code and it’ll execute directly.
 
-前27行都是給好的範例腳本
-我們要寫得基本上就是
-asm_code 變數裡變的東西
-然後把它用62行轉乘byte code後送出去
-接著收東西就好了
+Line before `chal_4.py:27` are the given example script.
+The part we need to write is basically the `asm_code` variable content.
+Then on `chal_4.py:62`, it gets converted to bytecode and sent.
+Just receive the output afterward.
 
-總共四個`syscall` 每一個都是對應以上的每個動作
-有幾行是多寫的移動rsp 那個不重要
-基本上不是填參數的都可以殺掉試看看
-`"/FLAG"`我是填在35~38行 就放在stack裡面
-
+There are a total of four `syscall` calls, each corresponding to the four actions mentioned above.
+Some extra lines move `rsp`, but those are not important.
+You can try deleting any line that doesn’t set a parameter to see if it still works.
+I placed the string `"/FLAG"` on the stack in `chal_1.py:35~38`
 
 ### 2
-
-組合語言的部分應該一模一樣
-現在的問題是沒辦法執行程式碼 所以要用Buffer Overflow來執行程式碼
-看80行call `task()` 這個function會讓我們輸入
-而funciton他read的長度(256)超過他變數給(40)
-所以我們可以送東西來覆蓋結果
+The assembly part should be exactly the same.
+Now the problem is that the shellcode can’t be directly executed anymore, so you need to trigger a buffer overflow to run it.
+`bof1.c:80` calls `task()` — this function lets us input data.
+However, it reads 256 bytes but only allocates 40 bytes of space.
+So we can overflow and overwrite the return address:
 ```
-
-| ...其他東西       | <-rsp
+| ... other data   | <-rsp
 | buf3             |
-| ... 其他東西      |
+| ... other data   |
 | buf2             |
-| ... 其他東西      |
+| ... other data   |
 | buf1             |
-| ...其他東西       |
-| task return addr | (理論上就是81行的位置)
+| ... other data   |
+| task return addr | (should be the address at bof1.c:81)
 ```
-目標就是把task return addr換成msg的位置(msg會送和第一題一樣的程式碼)
-所以我們要想辦法把那個超過長度來蓋掉task return addr
+The goal is to replace the return address of task with the address of msg (which contains the same shellcode as in ex1).
+So we need to overflow past the buffer to overwrite task's return address.
 
-下面的60行，我先送56個A (送幾個是要考gdb來看的)
+In `chal_2.py:60`, I send 56 As first (the number needs to be determined with debugger):
 ```
-| ...其他東西       | <-rsp
+| ... other data   | <-rsp
 | buf1             |
-| ... 其他東西      |
+| ... other data   |
 | buf2             |
-| ... 其他東西      |
-| buf3 (AAAA       | (56個A)
+| ... other data   |
+| buf3 (AAAA       | (56 A's)
 | AAAAAAAAAA       | 
-| task return addr | (理論上就是81行的位置)
+| task return addr | (should be the address at bof1.c:81)
 ```
-接著62行有一個收9+8\*7到最後一行(9是他的輸出，8\*7是我送的)
-他會連task return addr是多少一起傳回來
-\+ 0xe5587是從return addr去算msg addr(server code的12行)是多少 用gdb看
-61 行 接著又送了8 * 13 個A 加上上面算出來的msg addr
+
+Then, in `chal_2.py:62`, 9 + 8×7 bytes are received and printed (9 is the output, 8×7 is what I sent).
+It returns the task's return address.
+\+ 0xe5587 is used to calculate the address of msg (`bof1.c:12`), using gdb.
+in `chal_2.py:61`, I send another 8×13 A’s plus the calculated msg address:
 ```
-| ...其他東西       | <-rsp
+| ... other data   | <-rsp
 | buf3             |
-| ... 其他東西      |
-| buf2 (AAAA       | (8*13個A)
+| ... other data   |
+| buf2 (AAAA       | (8×13 A's)
 | AAAAAAAAAA       |
 | buf1 (AAAA       | 
 | AAAAAAAAAA       | 
-| msg addr         | (被換掉了)
+| msg addr         | (now replaced)
 ```
-接下來第三個不重要
-最後把asm_code送到msg裡面就好了
-
+Next, the third input isn’t important.
+Finally, send the asm_code into msg.
 
 ### 3
-
-理論上第二題一模一樣，只是有開canary，所以stack情況會變成
-||我不確定為甚麼第二題和第三題buf方向是反的 但這是gdb看到的||
+In theory, the second question is the same, except now there's a canary enabled, so the stack looks like this:
+||I’m not sure why the buffer order is reversed in Q2 and Q3, but this is what gdb shows||
 ```
-
-| ...其他東西       | <-rsp
+| ... other data   | <-rsp
 | buf1             |
-| ... 其他東西      |
+| ... other data   |
 | buf2             |
-| ... 其他東西      |
+| ... other data   |
 | buf3             |
-| ...其他東西       |
+| ... other data   |
 | canary           |
-| task return addr | (理論上就是81行的位置)
-```
-那就是一個保護裝置，避免出現越界
-要做的事情就是覆蓋掉return addr的同時，還需要把canary保存並存回去
+| task return addr | (should be the address at bof2.c:81)
 
-所以流程變成
-把 canary記下來
 ```
-| ...其他東西       | <-rsp
-| buf1 (AAAA)      | 送這裡
+The canary is a protection mechanism to prevent overflows.
+So now you need to preserve and restore the canary while also overwriting the return address.
+
+The steps become:
+First, record the **canary**:
+```
+| ... other data   | <-rsp
+| buf1 (AAAA)      | sending here
 | AAAAAAAAAA       |
 | buf2 (AAAA)      |
 | AAAAAAAAAA       |
 | buf3 (AAAA)      |
 | AAAAAAAAAA       |
 | canary           |
-| task return addr | (理論上就是81行的位置)
+| task return addr | (should be the address at bof2.c:81)
 ```
-把 return addr記下來算msg addr
+Then record the return address to calculate msg address:
 ```
-| ...其他東西       | <-rsp
+| ... other data   | <-rsp
 | buf1 (AAAA)      | 
 | AAAAAAAAAA       |
-| buf2 (AAAA)      | 送這裡
+| buf2 (AAAA)      | sending here
 | AAAAAAAAAA       |
 | buf3 (AAAA)      |
 | AAAAAAAAAA       |
-| AAAAAAAAAA       | (蓋掉了
-| task return addr | (理論上就是81行的位置)
+| AAAAAAAAAA       | (overwrites it)
+| task return addr | (should be the address at line 81)
 ```
-把 canary + msg addr存回去
+Then write back **canary + msg addr**: (Check by debugger, there a word between canary and return addr, I ignore it here, but it not important)
 ```
-| ...其他東西       | <-rsp
+| ... other data   | <-rsp
 | buf1 (AAAA)      | 
 | AAAAAAAAAA       |
 | buf2 (AAAA)      | 
 | AAAAAAAAAA       |
-| buf3 (AAAA)      | 送這裡
+| buf3 (AAAA)      | sending here
 | AAAAAAAAAA       |
-| canary           | (蓋掉了
+| canary           | (overwritten)
 | msg return addr  | 
 ```
-把 asm_code送回去
+Then send the `asm_code`.
 
 
 ### 4
 
 基本上沒有msg變數可以操作了，所以目標變成
 ```
-| ...其他東西       | <-rsp
+| ... other data   | <-rsp
 | buf1             |
-| ... 其他東西      |
+| ... other data   |
 | buf2             |
-| ... 其他東西      |
+| ... other data   |
 | buf3             |
-| ...其他東西       |
+| ... other data   |
 | canary           |
-| task return addr | (理論上就是81行的位置)
+| task return addr | (should be the address at line 81)
 ```
 
 ```
-| ...其他東西       | <-rsp
+| ... other data   | <-rsp
 | buf1             |
-| ... 其他東西      |
+| ... other data   |
 | buf2             |
-| ... 其他東西      |
+| ... other data   |
 | buf3             |
-| ...其他東西       |
+| ... other data   |
 | canary           |
-| ROP-程式碼        |
+| ROP code         |
 ```
-用ROP來達到特定組合語言的效果 (可以看spec說明或Hint)
-拿來放`/FLAG`的空間 和讀到的東西 就直接換成上面的buf 
+Use ROP to simulate the desired assembly behavior (refer to the spec or Hint).
+The space for `"/FLAG`" and the buffer for its content can be repurposed from the above buffers.
 
-至於base addr和 return addr怎麼找?
-用`objdump`來看哪裡有call `<task>`
+So how do you find the base addr and return addr?
+Use `objdump` to locate the call `<task>` instruction.
 
-想要特定功能的ROP 可以用spec裡面的指令+`grep`來找
-只有一組`syscall; ret;`這組 我是透過pwndbg找到的
+To find specific ROP gadgets, use the instructions in the spec + grep.
+There’s only one `syscall; ret;` — I found it using pwndbg, referred from comment

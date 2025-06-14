@@ -2,8 +2,6 @@ UP25 Lab06
 ==========
 Date: 2025-05-26
 
-[TOC]
-
 # Buffer Overflow & Shellcoding Challenges
 
 This lab aims to practice advanced assembly tricks. Specifically, we focus on implementing buffer overflow attacks and writing shellcodes. Please read the codes and solve the challenges available on the four challenge servers.

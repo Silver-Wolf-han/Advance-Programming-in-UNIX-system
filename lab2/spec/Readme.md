@@ -2,8 +2,6 @@ UP25 Lab02
 ==========
 Date: 2024-03-10
 
-[TOC]
-
 # Cryptomod: Encrypt and Decrypt Data Using a Kernel Module
 
 In this lab, you will implement a kernel module that performs encryption and decryption operations using the Linux Kernel API. The kernel module should be configured using the `ioctl` interface and provide information through the `proc` file system.

@@ -2,8 +2,6 @@ UP25 Lab03
 ==========
 Date: 2025-03-31
 
-[TOC]
-
 # GOTOKU Challenge
 
 This lab aims to play with `LD_PRELOAD` and GOT table. Your mission is to ask our challenge server to solve the sudoku puzzle, i.e., move from the start position (0, 0) to the empty cells and fill in the correct values.

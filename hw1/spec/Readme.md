@@ -2,8 +2,6 @@
 
 <i style="color:red">Due Date: 2025-04-28</i>
 
-[TOC]
-
 ## System Call Hook and Logging
 
 In this homework, you will practice library injection and system call hooking. The system call hooking mechanism is inspired by [zpoline](https://github.com/yasukata/zpoline), which won the Best Paper award at USENIX ATC 2023.
@@ -620,7 +618,6 @@ Please include a `Makefile` that compiles your source code. Your code must be co
 
 
 # UP25 HW1: Hidden Testcases
-[TOC]
 
 ## Hidden Testcase 1 (10%)
 

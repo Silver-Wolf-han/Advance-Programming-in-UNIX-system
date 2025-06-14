@@ -1,6 +1,5 @@
 # UP25 HW2
 Due Date: 2025-06-02
-[TOC]
 
 ## Simple Instruction Level Debugger
 

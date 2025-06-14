@@ -2,8 +2,6 @@ UP25 Lab05
 ==========
 Date: 2025-05-05
 
-[TOC]
-
 # Let's Race Together
 
 This lab aims to investigate possible race or reentrant errors from multithreaded programs. Please read the codes and solve the challenges available on the three challenge servers.

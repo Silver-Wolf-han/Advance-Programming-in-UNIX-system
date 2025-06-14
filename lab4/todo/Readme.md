@@ -1,14 +1,13 @@
 # Lab4
 
-## 目標
+## Objective
 
-要完成的目標是`libmin64-ex.asm`，就是練習組合語言而已
-整個`chal/`資料夾是助教給好的 底下有一個sybolic link只到外面的`libmin64-ex.asm` 所以可以直接在外面改 然後到`chal/`底下測試
+The goal is to complete `libmin64-ex.asm`, which is just for practicing assembly language.
+The entire `chal/` folder is provided by the TA. Inside it, there is a symbolic link pointing to the outer `libmin64-ex.asm`, so you can directly edit it from outside and then test it inside the `chal/` directory.
 
-這次lab期間剛好是最麻煩的HW1 所以要做的事情也相對簡單很多 就是熟悉組合語言
+This lab happened to overlap with the most difficult assignment, HW1, so the workload here is relatively light—mainly to get familiar with assembly language.
 
 ## todo
 
-就 叫~~ChatGPT~~
-||`setjump`和`longjump`我也不是很懂在幹嘛.. 只大概知道就填參數 保存想要的內容到stack demo的時候助教問了一個問題 我聽不是很懂 反正就助教就輕輕放下了||
-
+~~Just ask ChatGPT~~
+||I also don’t fully understand what `setjump` and `longjump` are doing... I only roughly know they’re for saving some data onto the stack. During the demo, the TA asked a question I didn’t quite understand, but they just let it slide anyway||

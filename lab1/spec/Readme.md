@@ -1,8 +1,6 @@
 UP25 Lab01
 ==========
 
-[TOC]
-
 # Build course environment
 
 ## Objective

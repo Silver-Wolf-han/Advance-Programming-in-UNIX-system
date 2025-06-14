@@ -1,20 +1,20 @@
 # Lab1 docker & pwntool
 
 
-## 目標
+## Objective
 
-這個Lab要做的事情
-1. 裝好環境
-2. 熟悉pwntool
+What this lab is about:
+1. Set up the environment
+2. Get familiar with pwntool
 
-中間有冒出一個pow(proof-of-work)，可以直接忽略這個東西，這只是一種驗證手段而已，就套他給好的code就好。
+There’s a “pow (proof-of-work)” that pops up in the middle—you can just ignore this part. It’s just a verification method. Just use the given code and move on.
 
-裝環境就選擇喜歡的裝吧 大部分的人應該是裝**WSL** 我是用**VMware + Ubuntu 24.04** 應該都可以 (還有從後面的Lab看起來 使用MacOS完成作業會有很多困擾 所以盡量弄一台 Linux的機器吧)
+Choose any environment setup you like. Most people probably use **WSL**, but I used **VMware + Ubuntu 24.04** and it worked fine. (Also, judging from later labs, doing the assignments on MacOS might cause a lot of trouble, so it’s better to get a Linux machine.)
 
-pwntool 可以直接想像成一種可以幫助你完成傳輸的腳本套件
+You can think of pwntool as a scripting library to help with communication/interaction tasks.
 
-主要會用到個功能就三個類型
-1. 連線 以下兩個本質是一樣的 只是在local端要測試比較方便
+The main features used fall into three types:
+1. Connecting — the two methods below are essentially the same. The second one is just more convenient for local testing.
     remote
     ```py
     conn = remote("ip", port)
@@ -25,23 +25,24 @@ pwntool 可以直接想像成一種可以幫助你完成傳輸的腳本套件
     r = process("command or exe", shell = False)
     r.close()
     ```
-2. 送東西 send開頭
+2. ending data — functions starting with send
     ```py
     conn.sendline("A")
     ```
-4. 收東西 recv開頭
+3. Receiving data — functions starting with recv
     ```py
     one_line = conn.recvline()
     ```
 
-反正就是一個拿來跟要連線目標溝通的套件而已，怎麼送可以直接查library ||或問ChatGPT||
+Anyway, this is just a toolkit for communicating with your target. You can look up the library for how to use it ||or ask ChatGPT||
 
 ## Todo
 
 3. ***simple HTTP challenge***
-    把那個網址的內容撈下來輸出而已
-    送一個HTTP Request過去就好
+    Just fetch the content from that URL and print it.
+    You only need to send an HTTP Request.
 
-4. 一個遊戲機
-    用來熟悉pwntools 透過觀察`guess.dist.py`(server行為)來決定怎麼和server互動(像是先收什麼訊息 收到訊息怎麼恢復等)，應該可以不用實際解出遊戲，就可以完成互動就好
-    ||解遊戲叫ChatGPT寫||
+4. A mini game
+    This is for practicing pwntools. By observing guess.dist.py (the server's behavior), you can figure out how to interact with the server (e.g., what messages to expect, how to respond).
+    You probably don’t even need to beat the game—just interacting correctly is enough.
+    ||Ask ChatGPT to solve the game||

@@ -1,14 +1,14 @@
 # Lab 3 Gotoku
 
-## 目標
+## Objective
 
 1. Shared Library
-2. 覆蓋GOT Entry，簡單來說就是 把Library當中的Function換成自己寫的shared Library
+2. Overwrite GOT Entry, simply put: replacing the function in the original library with your own custom shared library.
 
 ## Todo
 
 :::warning
-根據spec，如果是在local執行的話，請先在`/`(根目錄)底下放好一個`/gotoku.txt`
+According to the spec, if you're running locally, make sure to place a file `/gotoku.txt` under the root directory `/`
 ```
  0 0 0 0 8 2 0 0 1
  0 2 0 6 1 0 0 9 8
@@ -20,11 +20,11 @@
  0 8 0 0 0 0 0 1 3
  0 0 3 2 5 1 0 0 4
 ```
-不然執行時會讀不到檔案，還有之後的lab如果有在local執行檔案通常也都是放在根目錄
+Otherwise the file won’t be found during execution. For future labs too, if you're running locally, files are usually placed in the root directory.
 :::
 
-1. 怎麼程式編譯成Library? 自己編譯出來的Library怎麼用?
-    下面是dummy資料夾裡面的`makefile`
+1. How to compile a program into a library? How to use a library you compiled?
+    Below is the `makefile` from the `dummy` folder:
     ```makefile=
     CC = gcc
     CFLAGS = -Wall -g -fPIC
@@ -62,57 +62,56 @@
     preload:
         LD_PRELOAD=./libgotoku.so LD_LIBRARY_PATH=. ./gotoku.local
     ```
-    這是第一題(10%)的makefile 看起來很可怕 
-    總共做的事情三件
-    1. 編譯出一個shared object檔 (就是library), `libgotoku_dummy.so`
-    2. 編譯出一個執行檔案，要link上面的object檔, `gotoku.local`
-    3. 執行`gotoku.local`的時候link上面的object檔
+    This is the makefile for the ex1 (10%). It looks intimidating but it's really doing three things:
+    1. Compiles a shared object file (the library), `libgotoku_dummy.so`
+    2. Compiles an executable and links it with the above object file, `gotoku.local`
+    3. When running `gotoku.local`, links the object files
 
-    下面是順序
+    Here’s the sequence:
     ```makefile
     gcc -Wall -g -fPIC -c libgotoku_dummy.c
-    # 會冒出 libgotoku_dummy.o 就是把.c編譯成.o檔而已
+    # Generates libgotoku_dummy.o, just compiling .c to .o
     gcc -shared -o libgotoku_dummy.so libgotoku_dummy.o
-    # 會冒出 libgotoku_dummy.so 就是把.o編譯成.so檔而已
+    # Generates libgotoku_dummy.so, compiling .o to .so
     gcc -Wall -g -fPIC -c gotoku.c
-    # 會冒出 gotoku.o 就是把.c編譯成.o檔而已
+    # Generates gotoku.o, compiling .c to .o
     gcc -Wall -g -fPIC -o gotoku.local gotoku.o -L. -lgotolu_dummy
-    # 會冒出 gotoku.local 這是把gotoku.o編譯成執行檔, 而且 要dynamic link library (gotoku_dummy.so), 他的路徑在當前目錄下(.)
-    
+    # Generates gotoku.local, compiles gotoku.o to executable and links the above library located in current directory (.) 
     ```
-    總共兩種東西
-    1. library (`.c`->`.o`->`.so`) 這個東西不是拿來執行的 是拿來讓別人link的
-    2. 執行檔 (`.c`->`.o`->`exe`) 拿來執行的 如果有要用到別人的library要link進來
+    There are two kinds of things involved:
+    1. library (`.c`->`.o`->`.so`) — this is not for execution, but to be linked by others
+    2. Executable (`.c`->`.o`->`exe`) — this is the actual runnable binary, which needs to link libraries if needed
 
 2. shared object (`.so`, 就是library) 要寫什麼?
-    1. 先看dummy資料夾下面的 `libgotoku_dummy.c` 這個是原本的library 我們的目標就是要取代這個library
-    2. 取代這個東西之前，裡面的東西是可以廢物再利用的，可以用`dlsym()`來撈到原本的library當中的名字 就可以利用裡面的function了
-    3. 2-A (10%) 的部分，規定解出數獨就好 沒有任何限制 這裡的做法(`local_lib_modify_gop`資料夾)事就直接把修該`gop_1()`這個function的內容。
-        3-1. 用`lib_constructor`來先找到2.的東西
+    1. First, look at `libgotoku_dummy.c` in the dummy folder. That’s the original library. Your goal is to replace this.
+    2. Before replacing it, you can reuse stuff inside. You can use `dlsym()` to fetch the original library's symbols and reuse its functions.
+    3. For part 2-A (10%), the requirement is just to solve the Sudoku — no additional limitations. The approach in `local_lib_modify_gop` folder is simply to modify the content of `gop_1()`
+        3-1. Use `lib_constructor` to find the original symbols (step 2)
         3-2. `game_init`
-        3-3. `game_load` 同時dfs解數獨
-        3-4. 直接重寫一個`gop_1()`把解完的數值解上去(概念上就是function overwrite)
+        3-3. `game_load` and solve the Sudoku using DFS
+        3-4.  Overwrite `gop_1()` to apply the solved values (conceptually function overwrite)
         
-    那因為執行時我們要link的library是新寫的library，而不是原本的dummy 所以執行時
+    Since we want to link our own custom library at runtime instead of the original dummy one, run:
     ```bash
     LD_PRELOAD=./libgotoku.so LD_LIBRARY_PATH=. ./gotoku.local
-    # 設定兩個環境變數，前面是哪個.so 中間library的路徑，最後是執行檔
+    # Set two environment variables: first is which .so to load, second is library path, third is the executable
     ```
     
-3. 那2-B(10%)呢? 資料夾`local_lib`
-    多了很多限制 但其實我的2-A只有違反第三點:Your solver an only call the `gop_*` functions to walk in the puzzle, or modify the GOT table
-    反正就是`gop_*`不能改 然後我上面改了`gop_1`
-    所以這個部分就是進入下一個目標**modify the GOT table**
+3. What about 2-B (10%)? Folder: `local_lib`
+    There are more restrictions now. But actually, my 2-A only violated this rule:
+    >> Your solver an only call the `gop_*` functions to walk in the puzzle, or modify the GOT table
+    In other words, you're not allowed to modify gop_*, but in 2-A I did change gop_1.
+    So in this part, the goal becomes the next one: **modify the GOT table**
     
-    Spec當中有給一段python code(`get_got.py`)，這段code就是把`gotoku.local`裡面的function 相對addr撈出來後存到`got.txt`當中，所以這裡就可以直接讀檔把`gop_*`的相對addr撈出來
+    The spec provides a Python script (`get_got.py`) which reads the relative addresses of the `gotoku.local` functions and stores them in `got.txt`. So now you can just read from that file to get the relative addresses of the `gop_*` functions.
     
-    接著就只要在`get_load`的時候把這些function addr換成我們希望他做的事情就好(把動作的function pointer填進去) 裡面看起來跟上一個步驟的`gop_1`很像 只是前一個步驟我是直接call function最後就是直接覆蓋addr
+    Then during `game_load`, you simply replace the function addresses in the GOT table with the functions you want to use (fill the action function pointers). The logic is similar to the previous step's `gop_1`, but instead of calling a function directly, now you're overwriting an address.
     
-4. 那關於remote(6. 30%)的部分? 資料夾`remote`
-    remote做的事情是我們編好自己的library之後 傳給server 讓server link我們的library後執行。
+4. And what about the remote part (6. 30%)? Folder:`remote`
+    What you do is compile your own library and send it to the server, and the server links your library and runs it.
     
-    不過我們並不會事先知道server上的`gop_*` addr 所以助教有我們`server`正在執行的binary就用這個東西就可以直接得到`gop_*`的addr了 這些addr就直接hard code在程式裡面送上去即可
+    However, you won't know the `gop_*` addresses on the `server` in advance. But the TA provides the actual binary that the server is executing, so you can extract the `gop_*` addresses from that — just hardcode those addresses into your program and send it.
     
-3 4 5步驟的分數 應該就是輸出而已
+Steps 3, 4, and 5 are likely graded based on the output only.
 
-6 後面有一大串內容，那些應該只是驗證而已，不是很重要
+Step 6 There's a long section after this — that's probably just for verification, not very important.

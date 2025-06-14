@@ -1,35 +1,35 @@
 # Lab 2 have fun with kernel module
 
-要做一個Kernel Module出來
-比較複雜，前面多了一個pre-lab練習 基本上是在練習
-1. 怎麼開一個kernel出來
-2. 怎麼把我們的程式丟進去kernel裡面
+You need to create a Kernel Module.
+It's relatively complex, so there’s a pre-lab practice beforehand, which is basically about:
+1. How to launch a kernel
+2. How to insert our program into the kernel
 
-||反正很複雜 我也沒有理解||
+||It’s complicated—I didn’t really understand it either||
 
 ## 目標
 
-kernel module 包含
+The kernel module includes:
 
-1. `write` 輸入kernel
-2. `read` kernel輸出
-3. `ioctl` 控制io
+1. `write`  — input into the kernel
+2. `read`  — output from the kernels
+3. `ioctl` — control I/O
 
-依照spec做出這些東西
+Follow the spec to implement these features.
 
 ## Todo
 
-`312552056_lab02/`底下的是我寫的程式，在`todo`裡面有複製一份，`todo`裡面的其他程式都是按`make`之後會自己冒出來的東西
+The code I wrote is under `312552056_lab02/`.
+I copied a version into the `todo/` directory.
 
-`archive_into_kernel.sh`是我自己寫的腳本 編譯完程式後基本上只有`.ko`檔是等一下要跟著`qemu.sh`一起包進去kernel裡面
+`archive_into_kernel.sh` is a script I wrote myself. After compiling, basically only the `.ko` file is needed to be packaged into the kernel along with `qemu.sh`.
 
 `cryptomod.c`
-應該可以看註解，除了spec要求的function應該其他都和先給好的程式一樣
+You can refer to the comments. Besides the spec-required functions, the rest should be the same as the starter code.
 
-需要特別注意的應該是`DEC`+`ADV` 這種情況在收到final之前都必須留一個block在buffer當中，否則會沒有辦法解padding
+One thing to pay attention to is the `DEC` + `ADV` scenario.
+In this case, you must always keep one block in the buffer before receiving the final block; otherwise, it won’t be able to decrypt the padding properly.
 
-整個作業最麻煩的應該是學會把kernel module開起來吧
+||In theory, for side-channel issues with multi-threading, just locking everything with mutex should work. But in my case, if I don’t add `printk` at the beginning and end of a function, it causes multithreading issues—so there’s probably a bug||
 
-||對multi thread的側資 理論上是把mutex加好加滿就好，可是在我的程式裡如果沒有在function開頭結尾+`printk`的話會multi thread會出問題 所以這應該是有bug||
-
-||另外 因為~~年代久遠~~，實在沒有很記得當初寫的時候遇到什麼問題 如果我詳細了解kernel module之後再想看看有沒有什麼可以補充||
+||Also, ~~since this was a long time ago~~, I honestly don’t remember all the issues I encountered while writing it. If I study kernel modules more in the future, I’ll try to come back and add any useful notes||
