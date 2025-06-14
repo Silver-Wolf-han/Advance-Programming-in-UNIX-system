@@ -143,7 +143,7 @@ Then send the `asm_code`.
 
 ### 4
 
-基本上沒有msg變數可以操作了，所以目標變成
+Basically, there’s no more `msg` variable to work with.
 ```
 | ... other data   | <-rsp
 | buf1             |

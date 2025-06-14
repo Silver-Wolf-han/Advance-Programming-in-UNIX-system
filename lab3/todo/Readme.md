@@ -82,7 +82,7 @@ Otherwise the file won’t be found during execution. For future labs too, if yo
     1. library (`.c`->`.o`->`.so`) — this is not for execution, but to be linked by others
     2. Executable (`.c`->`.o`->`exe`) — this is the actual runnable binary, which needs to link libraries if needed
 
-2. shared object (`.so`, 就是library) 要寫什麼?
+2. What to write in the shared object (`.so`, i.e., library)?
     1. First, look at `libgotoku_dummy.c` in the dummy folder. That’s the original library. Your goal is to replace this.
     2. Before replacing it, you can reuse stuff inside. You can use `dlsym()` to fetch the original library's symbols and reuse its functions.
     3. For part 2-A (10%), the requirement is just to solve the Sudoku — no additional limitations. The approach in `local_lib_modify_gop` folder is simply to modify the content of `gop_1()`

@@ -79,7 +79,7 @@ I’ll write about some problems I encountered:
     # We can now return to continue original execution
     ```
 
-2. 怎麼把`syscall` 換成 `call rax` ?
+2. How to replace `syscall` with `call rax`?
     You need a disassembler tool. In class, teacher teachs ||in five sec|| `capstone`, which is a library. Look it up; it’s not too hard to use.
     Once you locate the `syscall`, just rewrite the bytecode as `call rax`.
     

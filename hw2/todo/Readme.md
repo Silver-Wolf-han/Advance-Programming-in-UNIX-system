@@ -39,7 +39,7 @@ Below are the course examples I referenced. If you've downloaded the course mate
         Hits syscall -> `return 0`
         Hits breakpoint  -> `return 2`
         
-|`return`| 意義 | 範例 |
+|`return`| Meaning | Example |
 |:--:|:--:|:--:|
 | 0 | No need to check status<br>1. Control flow not changed<br>2.`ptrace(SYSCALL)` hits a syscall | 1. `info`, `patch`, `break`, etc<br>2. Special case, handles everything immediately|
 | 1 | Need `waitpid` to check status<br>Also need to check for breakpoints | 1. `cont`<br>2.`si` not hitting a breakpoint |
